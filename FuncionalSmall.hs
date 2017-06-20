@@ -1,4 +1,4 @@
-data Exp = Num Int | TRUE | FALSE | Var String | Soma Exp Exp | Sub Exp Exp | Div Exp Exp
+data Exp = Num Int | TRUE | FALSE | Var String | Soma Exp Exp | Sub Exp Exp | Div Exp Exp | Leq Exp Exp
 	| Mult Exp Exp | Suc Exp | Pred Exp |And Exp Exp | Or Exp Exp | Not Exp | IF Exp Exp Exp
 	| Ap Exp Exp | Fun String Tipo Exp | Let String Tipo Exp Exp
 	deriving (Eq,Show)
@@ -31,7 +31,7 @@ smallStep (Mult (Num n1) (Num n2)) = Num (n1*n2)
 smallStep (Mult (Num n) e) = Mult (Num n) (smallStep e)
 smallStep (Mult e1 e2) = Mult (smallStep e1) e2
 -- Divisão
-smallStep (Div (Num n1) (Num n2)) = Num (n1/n2)
+smallStep (Div (Num n1) (Num n2)) = Num (n1 `div` n2)
 smallStep (Div (Num n) e) = Mult (Num n) (smallStep e)
 smallStep (Div e1 e2) = Mult (smallStep e1) e2
 -- Sucessor
@@ -61,17 +61,40 @@ smallStep (Leq e1 e2) = Leq (smallStep e1) e2
 -- Aplicação de função
 smallStep (Ap (Fun var tipo e1) e2) = if(isFinal e2)
 					then subs var e2 e1
-					else Ap(Fun var tipo e1) (smallstep e2)
+					else Ap(Fun var tipo e1) (smallStep e2)
 smallStep (Ap e1 e2) = (Ap (smallStep e1) e2)
--- Let
-smallStep (Let 
+-- Let % Let x Int 4 x+5
+smallStep (Let x t e1 e2) = if(isFinal e1)
+					then subs x e1 e2
+					else Let x t (smallStep e1) e2
+-- If
+smallStep (IF e1 e2 e3) = if(isFinal e1)
+					then if(e1 == TRUE)
+						then e2
+						else e3
+					else IF (smallStep e1) e2 e3
 --Substituicao utilizada em Let e Fun --construir arvore sintatica
 subs :: String -> Exp -> Exp -> Exp
-subs var val (Soma exp1 exp2) = Soma (subs var val exp1) (subs var val exp2)
-subs 
-subs var val (Sub exp1 exp2)  = Sub (subs var val exp1) (subs var val exp2)
+subs var val (Var s)
+			| var == s = val --caso encontra variavel de mesmo nome
+			| otherwise = Var s
+subs var val (Num i) = Num i
+subs var val (Soma e1 e2) 		= Soma (subs var val e1) (subs var val e2)
+subs var val (Sub e1 e2)  		= Sub  (subs var val e1) (subs var val e2)
+subs var val (Mult e1 e2) 		= Mult (subs var val e1) (subs var val e2)
+subs var val (Div e1 e2)  		= Div  (subs var val e1) (subs var val e2)
+subs var val (Suc e1) 	  		= Suc  (subs var val e1)
+subs var val (Pred e1) 	  		= Pred (subs var val e1)
+subs var val (Not e1)	  		= Not  (subs var val e1)
+subs var val (And e1 e2)  		= And  (subs var val e1) (subs var val e2)
+subs var val (Or e1 e2)   		= Or   (subs var val e1) (subs var val e2)
+subs var val (IF e1 e2 e3)		= IF (subs var val e1) (subs var val e2) (subs var val e3)
+subs var val (Ap e1 e2)   		= Ap (subs var val e1) (subs var val e2)
+subs var val (Fun v tipo e1) 	= subs v val e1 --AP3
+--subs var val (Let v tipo e1 e2)	= subs var val e2
 -- subs var val ? = ?
 -- {v/x}e1 = subs x v e1
+
 
 progTeste :: Exp
 progTeste = Soma (Soma (Num 4) (Num 5)) (Num 12)
@@ -81,7 +104,6 @@ prog1 = Ap (IF TRUE (Fun "x" INT (Soma (Var "x") (Num 1))) (Fun "x" INT (Soma (V
 
 -- > (if True then (Fun x:Int in x + 1) (Fun x:Int in x+2) 2 
 -- Resp: 3
-
 
 prog2 :: Exp
 prog2 = (Let "x" (F INT INT) (Fun "x" INT (Soma (Var "x") (Num 1))) (Ap (Var "x") (Num 10)))
