@@ -32,8 +32,8 @@ smallStep (Mult (Num n) e) = Mult (Num n) (smallStep e)
 smallStep (Mult e1 e2) = Mult (smallStep e1) e2
 -- Divisão
 smallStep (Div (Num n1) (Num n2)) = Num (n1 `div` n2)
-smallStep (Div (Num n) e) = Mult (Num n) (smallStep e)
-smallStep (Div e1 e2) = Mult (smallStep e1) e2
+smallStep (Div (Num n) e) = Div (Num n) (smallStep e)
+smallStep (Div e1 e2) = Div (smallStep e1) e2
 -- Sucessor
 smallStep (Suc (Num n)) = Num (n+1)
 smallStep (Suc e) = Suc (smallStep e)
