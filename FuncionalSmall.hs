@@ -90,7 +90,8 @@ subs var val (And e1 e2)  		= And  (subs var val e1) (subs var val e2)
 subs var val (Or e1 e2)   		= Or   (subs var val e1) (subs var val e2)
 subs var val (IF e1 e2 e3)		= IF (subs var val e1) (subs var val e2) (subs var val e3)
 subs var val (Ap e1 e2)   		= Ap (subs var val e1) (subs var val e2)
-subs var val (Fun v tipo e1) 	= subs v val e1 --AP3
+subs var val (Fun v tipo e1) 		= subs v val e1 --AP3
+subs var val (Let x t e1 e2)		= Let x t (subs var val e1) (subs var val e2)
 --subs var val (Let v tipo e1 e2)	= subs var val e2
 -- subs var val ? = ?
 -- {v/x}e1 = subs x v e1
@@ -120,3 +121,10 @@ prog3 = Fun "f1" (F INT INT) (Fun "y" BOOL (Soma (Num 4) (Ap (Var "f1") (Num 1))
 prog4 :: Exp
 prog4 = Let "x" (F INT INT) (Fun "x" INT (Soma (Var "x") (Num 1))) (Var "x") 
 
+prog5 :: Exp
+prog5 = Let "x" INT (Soma (Num 3) (Num 3)) (Let "y" (F INT INT) (Soma (Var "x") (Var "x")) (Soma (Var "y") (Var "y")))
+-- > Let x:int = 3+3 in (Let y:int = x+x in y+y
+
+prog6 :: Exp
+prog6 = Ap (Fun "x" INT (Let "y" INT (Soma (Num 3) (Num 3)) (Soma (Var "x") (Var "y")))) (Num 4)
+-- > (Fun x:int => Let y:int = 3+3 in x+y) 4 
