@@ -109,33 +109,26 @@ cSmallStep (If b c1 c2, s) 	  = let (b2,s2) = bSmallStep(b,s)
 -- Try catch					
 cSmallStep (Try Skip c2,s) = (Skip,s)
 cSmallStep (Try Throw c2,s) = (c2,s)
+cSmallStep (Try c c2,s) = let (cf,s2) = cSmallStep(c,s)
+					in (Try cf c2,s2)	
 
 -- Seq
 cSmallStep (Seq Skip c,s) = (c,s)
 cSmallStep (Seq Throw c,s) = (Throw,s)
-cSmallStep (Seq c1 c2,s) = let(cf,s1) = cSmallStep(c1,s)
-					in (Seq cf c2,s)
+cSmallStep (Seq c1 c2,s)  = let(cf,s1) = cSmallStep(c1,s)
+					in (Seq cf c2,s1)
 -- Atrib
 cSmallStep (Atrib (Var x) (Num y),s) = let(sf) = (mudaVar s x y)
 								in (Skip,sf)	
 cSmallStep (Atrib (Var x) e,s) = let(ef,sf) = aSmallStep(e,s)
 					in (Atrib (Var x) ef,sf)
 
--- interpretC :: (CExp,Estado) -> (CExp,Estado)
--- interpretC (b,s) = ?
-
--- isFinalC :: CExp -> Bool
-
--- csmallStep :: (CExp,Estado) -> (CExp,Estado)
-
-
-
 meuEstado :: Estado
-meuEstado = [("x",3), ("y",0), ("z",0)]
+meuEstado = [("x",10), ("y",1), ("z",0)]
 
 
 exemplo :: AExp
-exemplo = Som (Num 3) (Som (Var "x") (Var "y"))
+exemplo = Mul (Num 3) (Som (Var "x") (Var "y"))
 
 -- RODANDO O EXEMPLO:
 -- Hugs> interpretA (exemplo, meuEstado)
@@ -147,4 +140,9 @@ exemplo2 = And (And TRUE (Not FALSE)) (And (Not (Not TRUE)) TRUE)
 -- (TRUE,[("x",3),("y",0),("z",0)])
 
 exemplo3 :: CExp
-exemplo3 = (While (Ig (Var "x") (Num 3)) (Atrib (Var "x") (Som (Var "x") (Num 1))))
+exemplo3 = (While (Ig (Var "x") (Num 10)) (Atrib (Var "x") (Num 1)))
+-- (Skip,[("x",1),("y",0),("z",0)])
+
+exemplo4:: CExp
+exemplo4 = (Try (Seq (Atrib (Var "x") (Num 4)) Throw ) (Atrib (Var "x") (Num 3)))
+-- (Skip,[("x",3),("y",0),("z",0)])
