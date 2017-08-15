@@ -124,7 +124,7 @@ cSmallStep (Atrib (Var x) e,s) = let(ef,sf) = aSmallStep(e,s)
 					in (Atrib (Var x) ef,sf)
 
 meuEstado :: Estado
-meuEstado = [("x",10), ("y",1), ("z",0)]
+meuEstado = [("x",0), ("y",0), ("z",0)]
 
 
 exemplo :: AExp
@@ -146,3 +146,6 @@ exemplo3 = (While (Ig (Var "x") (Num 10)) (Atrib (Var "x") (Num 1)))
 exemplo4:: CExp
 exemplo4 = (Try (Seq (Atrib (Var "x") (Num 4)) Throw ) (Atrib (Var "x") (Num 3)))
 -- (Skip,[("x",3),("y",0),("z",0)])
+
+exemploquadro::CExp
+exemploquadro = (Try (Seq (Atrib (Var "x") (Num 2))  (Seq Throw (Atrib (Var "x") (Num 3)))) (Atrib (Var "x") (Som (Var "x") (Var "x")))) 
